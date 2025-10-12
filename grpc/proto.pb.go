@@ -4,7 +4,7 @@
 // 	protoc        v6.33.0--rc1
 // source: proto.proto
 
-package proto
+package grpc
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -25,6 +25,7 @@ type Message struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Sender        string                 `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
 	Content       string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	LogicTime     int64                  `protobuf:"varint,3,opt,name=LogicTime,proto3" json:"LogicTime,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -73,6 +74,57 @@ func (x *Message) GetContent() string {
 	return ""
 }
 
+func (x *Message) GetLogicTime() int64 {
+	if x != nil {
+		return x.LogicTime
+	}
+	return 0
+}
+
+type User struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *User) Reset() {
+	*x = User{}
+	mi := &file_proto_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *User) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*User) ProtoMessage() {}
+
+func (x *User) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use User.ProtoReflect.Descriptor instead.
+func (*User) Descriptor() ([]byte, []int) {
+	return file_proto_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *User) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
 type Ack struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Info          string                 `protobuf:"bytes,1,opt,name=info,proto3" json:"info,omitempty"`
@@ -82,7 +134,7 @@ type Ack struct {
 
 func (x *Ack) Reset() {
 	*x = Ack{}
-	mi := &file_proto_proto_msgTypes[1]
+	mi := &file_proto_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -94,7 +146,7 @@ func (x *Ack) String() string {
 func (*Ack) ProtoMessage() {}
 
 func (x *Ack) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_proto_msgTypes[1]
+	mi := &file_proto_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -107,7 +159,7 @@ func (x *Ack) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Ack.ProtoReflect.Descriptor instead.
 func (*Ack) Descriptor() ([]byte, []int) {
-	return file_proto_proto_rawDescGZIP(), []int{1}
+	return file_proto_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Ack) GetInfo() string {
@@ -125,7 +177,7 @@ type Empty struct {
 
 func (x *Empty) Reset() {
 	*x = Empty{}
-	mi := &file_proto_proto_msgTypes[2]
+	mi := &file_proto_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -137,7 +189,7 @@ func (x *Empty) String() string {
 func (*Empty) ProtoMessage() {}
 
 func (x *Empty) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_proto_msgTypes[2]
+	mi := &file_proto_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -150,23 +202,28 @@ func (x *Empty) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Empty.ProtoReflect.Descriptor instead.
 func (*Empty) Descriptor() ([]byte, []int) {
-	return file_proto_proto_rawDescGZIP(), []int{2}
+	return file_proto_proto_rawDescGZIP(), []int{3}
 }
 
 var File_proto_proto protoreflect.FileDescriptor
 
 const file_proto_proto_rawDesc = "" +
 	"\n" +
-	"\vproto.proto\x12\bchitchat\";\n" +
+	"\vproto.proto\x12\bchitchat\"Y\n" +
 	"\aMessage\x12\x16\n" +
 	"\x06sender\x18\x01 \x01(\tR\x06sender\x12\x18\n" +
-	"\acontent\x18\x02 \x01(\tR\acontent\"\x19\n" +
+	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1c\n" +
+	"\tLogicTime\x18\x03 \x01(\x03R\tLogicTime\"\x1a\n" +
+	"\x04User\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\"\x19\n" +
 	"\x03Ack\x12\x12\n" +
 	"\x04info\x18\x01 \x01(\tR\x04info\"\a\n" +
-	"\x05Empty2w\n" +
+	"\x05Empty2\xc6\x01\n" +
 	"\vChatService\x12/\n" +
 	"\vSendMessage\x12\x11.chitchat.Message\x1a\r.chitchat.Ack\x127\n" +
-	"\x0fReceiveMessages\x12\x0f.chitchat.Empty\x1a\x11.chitchat.Message0\x01B\x15Z\x13ChitChat/grpc/protob\x06proto3"
+	"\x0fReceiveMessages\x12\x0f.chitchat.Empty\x1a\x11.chitchat.Message0\x01\x12&\n" +
+	"\x05Leave\x12\x0e.chitchat.User\x1a\r.chitchat.Ack\x12%\n" +
+	"\x04Join\x12\x0e.chitchat.User\x1a\r.chitchat.AckB\x10Z\x0echit-chat/grpcb\x06proto3"
 
 var (
 	file_proto_proto_rawDescOnce sync.Once
@@ -180,19 +237,24 @@ func file_proto_proto_rawDescGZIP() []byte {
 	return file_proto_proto_rawDescData
 }
 
-var file_proto_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_proto_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_proto_proto_goTypes = []any{
 	(*Message)(nil), // 0: chitchat.Message
-	(*Ack)(nil),     // 1: chitchat.Ack
-	(*Empty)(nil),   // 2: chitchat.Empty
+	(*User)(nil),    // 1: chitchat.User
+	(*Ack)(nil),     // 2: chitchat.Ack
+	(*Empty)(nil),   // 3: chitchat.Empty
 }
 var file_proto_proto_depIdxs = []int32{
 	0, // 0: chitchat.ChatService.SendMessage:input_type -> chitchat.Message
-	2, // 1: chitchat.ChatService.ReceiveMessages:input_type -> chitchat.Empty
-	1, // 2: chitchat.ChatService.SendMessage:output_type -> chitchat.Ack
-	0, // 3: chitchat.ChatService.ReceiveMessages:output_type -> chitchat.Message
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
+	3, // 1: chitchat.ChatService.ReceiveMessages:input_type -> chitchat.Empty
+	1, // 2: chitchat.ChatService.Leave:input_type -> chitchat.User
+	1, // 3: chitchat.ChatService.Join:input_type -> chitchat.User
+	2, // 4: chitchat.ChatService.SendMessage:output_type -> chitchat.Ack
+	0, // 5: chitchat.ChatService.ReceiveMessages:output_type -> chitchat.Message
+	2, // 6: chitchat.ChatService.Leave:output_type -> chitchat.Ack
+	2, // 7: chitchat.ChatService.Join:output_type -> chitchat.Ack
+	4, // [4:8] is the sub-list for method output_type
+	0, // [0:4] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -209,7 +271,7 @@ func file_proto_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_proto_rawDesc), len(file_proto_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

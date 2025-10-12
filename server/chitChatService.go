@@ -20,11 +20,16 @@ type ChatServer struct {
 }
 
 func (s *ChatServer) SendMessage(ctx context.Context, msg *pb.Message) (*pb.Ack, error) {
+	// S3 – Valider beskeden
+	if len(msg.Content) > 128 {
+		return &pb.Ack{Info: "Message too long (max 128 characters)"}, nil
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	// S4 Broadcast beskeden til alle aktive klienter
 	log.Printf("%s: %s", msg.Sender, msg.Content)
-
 	for _, stream := range s.clients {
 		stream.Send(msg)
 	}
@@ -41,40 +46,45 @@ func (s *ChatServer) ReceiveMessages(empty *pb.Empty, stream pb.ChatService_Rece
 	return nil
 }
 
-// S5–S6 til join/leave beskeder
-func broadcast() {
-	// if they leave or join send message
-	// Send publish message to active users
-	// must include message and timestamp
-}
-
-
-
-
-func (s *ChatServer) Leave(ctx context.Context, user *pb.user) (*pb.Ack, error) {
+// S5 – Når en deltager joiner
+func (s *ChatServer) Join(ctx context.Context, user *pb.User) (*pb.Ack, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	logicalTime := time.Now().UnixMilli()
+	joinMsg := &pb.Message{
+		Sender:    "Server",
+		Content:   fmt.Sprintf("Participant %s joined Chit Chat at logical time %d", user.Name, logicalTime),
+		LogicTime: logicalTime,
+	}
+
+	for _, stream := range s.clients {
+		stream.Send(joinMsg)
+	}
+
+	log.Printf("Participant %s joined at %d", user.Name, logicalTime)
+	return &pb.Ack{Info: "Join message broadcasted"}, nil
+}
+
+// S6
+func (s *ChatServer) Leave(ctx context.Context, user *pb.User) (*pb.Ack, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
 	logicalTime := time.Now().UnixMilli()
-
-	
 	leaveMsg := &pb.Message{
-		Sender:      "Server",
-		Content:     fmt.Sprintf("Participant %s left Chit Chat at logical time %d", user.Name, logicalTime),
-		logicalTime: logicalTime,
+		Sender:    "Server",
+		Content:   fmt.Sprintf("Participant %s left Chit Chat at logical time %d", user.Name, logicalTime),
+		LogicTime: logicalTime,
 	}
 
 	for _, stream := range s.clients {
 		stream.Send(leaveMsg)
 	}
 
-	log.Printf("Participant %s left Chit Chat at %d", user.Name, logicalTime)
+	log.Printf("Participant %s left at %d", user.Name, logicalTime)
 	return &pb.Ack{Info: "Leave message broadcasted"}, nil
 }
-
-
-
 
 func main() {
 	listener, err := net.Listen("tcp", ":50051")

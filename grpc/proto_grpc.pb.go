@@ -4,11 +4,10 @@
 // - protoc             v6.33.0--rc1
 // source: proto.proto
 
-package proto
+package grpc
 
 import (
 	context "context"
-
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -22,6 +21,8 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	ChatService_SendMessage_FullMethodName     = "/chitchat.ChatService/SendMessage"
 	ChatService_ReceiveMessages_FullMethodName = "/chitchat.ChatService/ReceiveMessages"
+	ChatService_Leave_FullMethodName           = "/chitchat.ChatService/Leave"
+	ChatService_Join_FullMethodName            = "/chitchat.ChatService/Join"
 )
 
 // ChatServiceClient is the client API for ChatService service.
@@ -30,6 +31,8 @@ const (
 type ChatServiceClient interface {
 	SendMessage(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Ack, error)
 	ReceiveMessages(ctx context.Context, in *Empty, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Message], error)
+	Leave(ctx context.Context, in *User, opts ...grpc.CallOption) (*Ack, error)
+	Join(ctx context.Context, in *User, opts ...grpc.CallOption) (*Ack, error)
 }
 
 type chatServiceClient struct {
@@ -69,12 +72,34 @@ func (c *chatServiceClient) ReceiveMessages(ctx context.Context, in *Empty, opts
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type ChatService_ReceiveMessagesClient = grpc.ServerStreamingClient[Message]
 
+func (c *chatServiceClient) Leave(ctx context.Context, in *User, opts ...grpc.CallOption) (*Ack, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Ack)
+	err := c.cc.Invoke(ctx, ChatService_Leave_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *chatServiceClient) Join(ctx context.Context, in *User, opts ...grpc.CallOption) (*Ack, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Ack)
+	err := c.cc.Invoke(ctx, ChatService_Join_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ChatServiceServer is the server API for ChatService service.
 // All implementations must embed UnimplementedChatServiceServer
 // for forward compatibility.
 type ChatServiceServer interface {
 	SendMessage(context.Context, *Message) (*Ack, error)
 	ReceiveMessages(*Empty, grpc.ServerStreamingServer[Message]) error
+	Leave(context.Context, *User) (*Ack, error)
+	Join(context.Context, *User) (*Ack, error)
 	mustEmbedUnimplementedChatServiceServer()
 }
 
@@ -90,6 +115,12 @@ func (UnimplementedChatServiceServer) SendMessage(context.Context, *Message) (*A
 }
 func (UnimplementedChatServiceServer) ReceiveMessages(*Empty, grpc.ServerStreamingServer[Message]) error {
 	return status.Errorf(codes.Unimplemented, "method ReceiveMessages not implemented")
+}
+func (UnimplementedChatServiceServer) Leave(context.Context, *User) (*Ack, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Leave not implemented")
+}
+func (UnimplementedChatServiceServer) Join(context.Context, *User) (*Ack, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Join not implemented")
 }
 func (UnimplementedChatServiceServer) mustEmbedUnimplementedChatServiceServer() {}
 func (UnimplementedChatServiceServer) testEmbeddedByValue()                     {}
@@ -141,6 +172,42 @@ func _ChatService_ReceiveMessages_Handler(srv interface{}, stream grpc.ServerStr
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type ChatService_ReceiveMessagesServer = grpc.ServerStreamingServer[Message]
 
+func _ChatService_Leave_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(User)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServiceServer).Leave(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChatService_Leave_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServiceServer).Leave(ctx, req.(*User))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ChatService_Join_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(User)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ChatServiceServer).Join(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ChatService_Join_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ChatServiceServer).Join(ctx, req.(*User))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ChatService_ServiceDesc is the grpc.ServiceDesc for ChatService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -151,6 +218,14 @@ var ChatService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendMessage",
 			Handler:    _ChatService_SendMessage_Handler,
+		},
+		{
+			MethodName: "Leave",
+			Handler:    _ChatService_Leave_Handler,
+		},
+		{
+			MethodName: "Join",
+			Handler:    _ChatService_Join_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
