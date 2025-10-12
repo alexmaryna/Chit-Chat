@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package chitchat;
+option go_package = "ChitChat/grpc/proto";
+
+service ChatService {
+  rpc SendMessage (Message) returns (Ack);
+  rpc ReceiveMessages (Empty) returns (stream Message);
+}
+
+message Message {
+  string sender = 1;
+  string content = 2;
+}
+
+message Ack {
+  string info = 1;
+}
+
+message Empty {}
