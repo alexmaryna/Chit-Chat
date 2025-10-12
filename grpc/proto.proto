@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package chitchat;
-option go_package = "ChitChat/grpc/proto";
+option go_package = "github.com/alexmaryna/chit-chat/grpc;grpc";
 
 service ChatService {
   rpc SendMessage (Message) returns (Ack);
