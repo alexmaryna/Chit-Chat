@@ -11,6 +11,7 @@ service ChatService {
 message Message {
   string sender = 1;
   string content = 2;
+  int64 logic_time = 3;
 }
 
 message Ack {
