@@ -1,11 +1,14 @@
 syntax = "proto3";
 
 package chitchat;
-option go_package = "github.com/alexmaryna/chit-chat/grpc;grpc";
+option go_package = "chit-chat/grpc";
+
 
 service ChatService {
   rpc SendMessage (Message) returns (Ack);
   rpc ReceiveMessages (Empty) returns (stream Message);
+  rpc Leave (User) returns (Ack);
+  rpc Join (User) returns (Ack);
 }
 
 message Message {
@@ -13,6 +16,8 @@ message Message {
   string content = 2;
   int64 logic_time = 3;
 }
+
+message User { string name = 1; }
 
 message Ack {
   string info = 1;
