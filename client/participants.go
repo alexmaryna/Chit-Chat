@@ -1,15 +1,15 @@
 // s2
 package main
 
-/*import (
+import (
 	"bufio"
 	"context"
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	proto "chit-chat/grpc"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -20,8 +20,8 @@ var grpcClient proto.ChatServiceClient
 func connection() *grpc.ClientConn {
 	log.Println("Connecting to server...")
 
-	conn, err := grpc.NewClient(
-		"localhost:5050",
+	conn, err := grpc.Dial(
+		"localhost:50051",
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
@@ -32,18 +32,22 @@ func connection() *grpc.ClientConn {
 	return conn
 }
 
-/*func NewParticipantJoined(name string) {
-	log.Printf("%s is trying to join the chat...", clientName)
+func NewParticipantJoined(name string) {
+	log.Printf("%s is trying to join the chat...", name)
 
 	// start stream
-	stream, err := grpcClient.ReceiveMessages(context.Background(), &pb.Empty{})
+	stream, err := grpcClient.ReceiveMessages(context.Background(), &proto.Empty{})
 	if err != nil {
+		log.Fatalf("Could not start receiving meassages: %v", err)
+	}
+
+	go receiveMessage(stream)
+	
+	if _, err := grpcClient.Join(context.Background(), &proto.User{Name: name}); err != nil {
 		log.Fatalf("Could not join the chat: %v", err)
 	}
 
 	log.Println("Joined the chat succesfully")
-
-	go receiveMessage(stream)
 }
 
 func receiveMessage(stream proto.ChatService_ReceiveMessagesClient) {
@@ -54,23 +58,26 @@ func receiveMessage(stream proto.ChatService_ReceiveMessagesClient) {
 			return
 		}
 
-		//print message
-		fmt.Printf("\n[%s]: %s>n ", msg.Sender, msg.Content)
+		// print message
+		fmt.Printf("\n[%d] %s: %s\n> ", msg.GetLogicalTime(), msg.GetSender(), msg.GetContent())
+
 		// log message
-		fmt.Printf("Reseived from %s: %s", msg.Sender, msg.Content)
+		log.Printf("Received from %s: %s", msg.GetSender(), msg.GetContent())
 	}
 }
 
-func publishMsg() {
+func publishMsg(content string) {
+	content = strings.TrimSpace(content)
 	// max length 128
 	// UTF-8 encoded string
-	if len(content) > 128 {
-		fmt.Println("Error: The message must be under 128 characters")
-		return
-	}
 
 	// check if emty
 	if content == "" {
+		return
+	}
+
+	if len(content) > 128 {
+		fmt.Println("Error: The message must be under 128 characters")
 		return
 	}
 
@@ -83,8 +90,7 @@ func publishMsg() {
 	}
 
 	// Send to server
-	_, err := grpcClient.SendMessage(context.Background(), msg)
-	if err != nil {
+	if _, err := grpcClient.SendMessage(context.Background(), msg); err != nil {
 		log.Printf("The Message failed to sand: %v", err)
 		fmt.Println("Error: The massage could not send")
 	}
@@ -92,7 +98,8 @@ func publishMsg() {
 
 func leaveChat(conn *grpc.ClientConn) {
 	log.Println("Leaving the chat...")
-	conn.Close()
+	_, _ = grpcClient.Leave(context.Background(), &proto.User{Name: clientName})
+	_ = conn.Close()
 	log.Println("Goodbye!")
 }
 
@@ -100,21 +107,21 @@ func readUserInput() {
 	scanner := bufio.NewScanner(os.Stdin)
 
 	fmt.Println("\n=Chit Chat=")
-	fmt.Println("Write your message")
+	fmt.Println("Write your message and press Enter")
 	fmt.Println("Write 'exit' to leave")
 	fmt.Println("========\n")
 
 	for {
-		fmt.Print(">")
+		fmt.Print("> ")
 
 		if !scanner.Scan() {
-			break
+			return
 		}
 
 		input := scanner.Text()
 
-		if input == "exit" {
-			break
+		if strings.EqualFold(input, "exit") {
+			return
 		}
 
 		publishMsg(input)
@@ -136,8 +143,7 @@ func main() {
 
 	grpcClient = proto.NewChatServiceClient(conn)
 
-	NewParticipantJoined()
+	NewParticipantJoined(clientName)
 
 	readUserInput()
 }
-*/

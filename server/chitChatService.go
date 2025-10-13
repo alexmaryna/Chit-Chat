@@ -55,7 +55,7 @@ func (s *ChatServer) Join(ctx context.Context, user *pb.User) (*pb.Ack, error) {
 	joinMsg := &pb.Message{
 		Sender:    "Server",
 		Content:   fmt.Sprintf("Participant %s joined Chit Chat at logical time %d", user.Name, logicalTime),
-		LogicTime: logicalTime,
+		LogicalTime: logicalTime,
 	}
 
 	for _, stream := range s.clients {
@@ -75,7 +75,7 @@ func (s *ChatServer) Leave(ctx context.Context, user *pb.User) (*pb.Ack, error) 
 	leaveMsg := &pb.Message{
 		Sender:    "Server",
 		Content:   fmt.Sprintf("Participant %s left Chit Chat at logical time %d", user.Name, logicalTime),
-		LogicTime: logicalTime,
+		LogicalTime: logicalTime,
 	}
 
 	for _, stream := range s.clients {
