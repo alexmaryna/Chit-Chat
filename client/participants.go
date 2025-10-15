@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	proto "chit-chat/grpc"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -42,7 +43,7 @@ func NewParticipantJoined(name string) {
 	}
 
 	go receiveMessage(stream)
-	
+
 	if _, err := grpcClient.Join(context.Background(), &proto.User{Name: name}); err != nil {
 		log.Fatalf("Could not join the chat: %v", err)
 	}
@@ -62,7 +63,7 @@ func receiveMessage(stream proto.ChatService_ReceiveMessagesClient) {
 		fmt.Printf("\n[%d] %s: %s\n> ", msg.GetLogicalTime(), msg.GetSender(), msg.GetContent())
 
 		// log message
-		log.Printf("Received from %s: %s", msg.GetSender(), msg.GetContent())
+		log.Printf("Received L=%d from %s: %s", msg.GetLogicalTime(), msg.GetSender(), msg.GetContent())
 	}
 }
 

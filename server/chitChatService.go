@@ -29,6 +29,9 @@ func (s *ChatServer) SendMessage(ctx context.Context, msg *pb.Message) (*pb.Ack,
 	defer s.mu.Unlock()
 
 	// S4 Broadcast beskeden til alle aktive klienter
+	logicalTime := time.Now().UnixMilli()
+	msg.LogicalTime = logicalTime
+
 	log.Printf("%s: %s", msg.Sender, msg.Content)
 	for _, stream := range s.clients {
 		stream.Send(msg)
@@ -53,8 +56,8 @@ func (s *ChatServer) Join(ctx context.Context, user *pb.User) (*pb.Ack, error) {
 
 	logicalTime := time.Now().UnixMilli()
 	joinMsg := &pb.Message{
-		Sender:    "Server",
-		Content:   fmt.Sprintf("Participant %s joined Chit Chat at logical time %d", user.Name, logicalTime),
+		Sender:      "Server",
+		Content:     fmt.Sprintf("Participant %s joined Chit Chat at logical time %d", user.Name, logicalTime),
 		LogicalTime: logicalTime,
 	}
 
@@ -73,8 +76,8 @@ func (s *ChatServer) Leave(ctx context.Context, user *pb.User) (*pb.Ack, error) 
 
 	logicalTime := time.Now().UnixMilli()
 	leaveMsg := &pb.Message{
-		Sender:    "Server",
-		Content:   fmt.Sprintf("Participant %s left Chit Chat at logical time %d", user.Name, logicalTime),
+		Sender:      "Server",
+		Content:     fmt.Sprintf("Participant %s left Chit Chat at logical time %d", user.Name, logicalTime),
 		LogicalTime: logicalTime,
 	}
 
