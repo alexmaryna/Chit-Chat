@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	proto "chit-chat/grpc"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -41,8 +42,9 @@ func NewParticipantJoined(name string) {
 		log.Fatalf("Could not start receiving meassages: %v", err)
 	}
 
+	log.Println("Message stream established")
 	go receiveMessage(stream)
-	
+
 	if _, err := grpcClient.Join(context.Background(), &proto.User{Name: name}); err != nil {
 		log.Fatalf("Could not join the chat: %v", err)
 	}
@@ -62,14 +64,12 @@ func receiveMessage(stream proto.ChatService_ReceiveMessagesClient) {
 		fmt.Printf("\n[%d] %s: %s\n> ", msg.GetLogicalTime(), msg.GetSender(), msg.GetContent())
 
 		// log message
-		log.Printf("Received from %s: %s", msg.GetSender(), msg.GetContent())
+		log.Printf("Received Time: %d, From %s Message: %s", msg.GetLogicalTime(), msg.GetSender(), msg.GetContent())
 	}
 }
 
 func publishMsg(content string) {
 	content = strings.TrimSpace(content)
-	// max length 128
-	// UTF-8 encoded string
 
 	// check if emty
 	if content == "" {
@@ -87,6 +87,7 @@ func publishMsg(content string) {
 	msg := &proto.Message{
 		Sender:  clientName,
 		Content: content,
+		// LogicalTime is Missing =============================================================================================================================
 	}
 
 	// Send to server
@@ -100,7 +101,6 @@ func leaveChat(conn *grpc.ClientConn) {
 	log.Println("Leaving the chat...")
 	_, _ = grpcClient.Leave(context.Background(), &proto.User{Name: clientName})
 	_ = conn.Close()
-	log.Println("Goodbye!")
 }
 
 func readUserInput() {
@@ -109,7 +109,7 @@ func readUserInput() {
 	fmt.Println("\n=Chit Chat=")
 	fmt.Println("Write your message and press Enter")
 	fmt.Println("Write 'exit' to leave")
-	fmt.Println("========\n")
+	fmt.Println("========")
 
 	for {
 		fmt.Print("> ")
