@@ -106,7 +106,6 @@ func readUserInput() {
 	fmt.Println("\n== Chit Chat ==")
 	fmt.Println("Write your message and press Enter")
 	fmt.Println("Write 'exit' to leave")
-	fmt.Println("==================================")
 
 	for {
 		fmt.Print("> ")
