@@ -25,12 +25,10 @@ type ChatServer struct {
 }
 
 func (s *ChatServer) messageBroadcastHandle() {
-	log.Println("Message broadcating handler started")
-
 	for msg := range s.msgQueue {
 		s.mu.Lock()
-		clientCount := len(s.clients)
-		log.Printf("Broadcatsing message from %s to %d participants", msg.Sender, clientCount)
+		//clientCount := len(s.clients)
+		//log.Printf("Broadcatsing message from %s to %d participants", msg.Sender, clientCount)
 
 		for _, stream := range s.clients {
 			if err := stream.Send(msg); err != nil {
@@ -39,8 +37,6 @@ func (s *ChatServer) messageBroadcastHandle() {
 		}
 		s.mu.Unlock()
 	}
-
-	log.Println("Message broadcasting handler stopped")
 }
 
 func (s *ChatServer) SendMessage(ctx context.Context, msg *pb.Message) (*pb.Ack, error) {
@@ -58,16 +54,16 @@ func (s *ChatServer) SendMessage(ctx context.Context, msg *pb.Message) (*pb.Ack,
 	// send to channel
 	s.msgQueue <- msg
 
-	return &pb.Ack{Info: "Message received by server"}, nil
+	return &pb.Ack{Info: "Message received"}, nil
 }
 
 func (s *ChatServer) ReceiveMessages(empty *pb.Empty, stream pb.ChatService_ReceiveMessagesServer) error {
 	s.mu.Lock()
 	s.clients = append(s.clients, stream)
-	clientCount := len(s.clients)
+	//clientCount := len(s.clients)
 	s.mu.Unlock()
 
-	log.Printf("Participant connected. Total participants: %d", clientCount)
+	//log.Printf("Participant connected. Total participants: %d", clientCount)
 
 	// Waiting until the participant disconnects
 	<-stream.Context().Done()
@@ -77,7 +73,7 @@ func (s *ChatServer) ReceiveMessages(empty *pb.Empty, stream pb.ChatService_Rece
 	for i, client := range s.clients {
 		if client == stream {
 			s.clients = append(s.clients[:i], s.clients[i+1:]...)
-			log.Printf("Participant disconnected. Total participants: %d", len(s.clients))
+			//log.Printf("Participant disconnected. Total participants: %d", len(s.clients))
 			break
 		}
 	}
@@ -91,7 +87,7 @@ func (s *ChatServer) Join(ctx context.Context, user *pb.User) (*pb.Ack, error) {
 	logicalTime := time.Now().UnixMilli()
 	joinMsg := &pb.Message{
 		Sender:      "Server",
-		Content:     fmt.Sprintf("Participant %s joined Chit Chat at logical time %d", user.Name, logicalTime),
+		Content:     fmt.Sprintf("Participant %s joined Chit Chat", user.Name),
 		LogicalTime: logicalTime,
 	}
 
@@ -100,7 +96,7 @@ func (s *ChatServer) Join(ctx context.Context, user *pb.User) (*pb.Ack, error) {
 	// send to channel
 	s.msgQueue <- joinMsg
 
-	return &pb.Ack{Info: "Join message broadcasted"}, nil
+	return &pb.Ack{Info: "Joined"}, nil
 }
 
 // S6
@@ -108,7 +104,7 @@ func (s *ChatServer) Leave(ctx context.Context, user *pb.User) (*pb.Ack, error) 
 	logicalTime := time.Now().UnixMilli()
 	leaveMsg := &pb.Message{
 		Sender:      "Server",
-		Content:     fmt.Sprintf("Participant %s left Chit Chat at logical time %d", user.Name, logicalTime),
+		Content:     fmt.Sprintf("Participant %s left Chit Chat", user.Name),
 		LogicalTime: logicalTime,
 	}
 
@@ -116,7 +112,7 @@ func (s *ChatServer) Leave(ctx context.Context, user *pb.User) (*pb.Ack, error) 
 
 	s.msgQueue <- leaveMsg
 
-	return &pb.Ack{Info: "Leave message broadcasted"}, nil
+	return &pb.Ack{Info: "Left"}, nil
 }
 
 func main() {
@@ -138,7 +134,6 @@ func main() {
 	grpcServer := grpc.NewServer()
 	pb.RegisterChatServiceServer(grpcServer, ChatServer)
 
-	log.Println("Server is running on port 50051...")
 	log.Println("Server started on port 50051")
 
 	// use channel for shutdown signaling
@@ -152,7 +147,7 @@ func main() {
 	// serve in go routine
 	go func() {
 		if err := grpcServer.Serve(listener); err != nil {
-			log.Fatalf("Falied to serve: %v", err)
+			log.Fatalf("Server stopped serving: %v", err)
 		}
 	}()
 

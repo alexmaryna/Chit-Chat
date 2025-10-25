@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	proto "chit-chat/grpc"
 
@@ -28,35 +29,30 @@ func connection() *grpc.ClientConn {
 	if err != nil {
 		log.Fatalf("Could not connect to server: %v", err)
 	}
-
-	log.Println("Connected")
 	return conn
 }
 
 func NewParticipantJoined(name string) {
-	log.Printf("%s is trying to join the chat...", name)
-
 	// start stream
 	stream, err := grpcClient.ReceiveMessages(context.Background(), &proto.Empty{})
 	if err != nil {
 		log.Fatalf("Could not start receiving meassages: %v", err)
 	}
 
-	log.Println("Message stream established")
 	go receiveMessage(stream)
 
 	if _, err := grpcClient.Join(context.Background(), &proto.User{Name: name}); err != nil {
 		log.Fatalf("Could not join the chat: %v", err)
 	}
 
-	log.Println("Joined the chat succesfully")
+	//log.Println("Joined the chat succesfully")
 }
 
 func receiveMessage(stream proto.ChatService_ReceiveMessagesClient) {
 	for {
 		msg, err := stream.Recv()
 		if err != nil {
-			log.Printf("Stream closed: %v", err)
+			log.Printf("Connection closed: %v", err)
 			return
 		}
 
@@ -64,7 +60,7 @@ func receiveMessage(stream proto.ChatService_ReceiveMessagesClient) {
 		fmt.Printf("\n[%d] %s: %s\n> ", msg.GetLogicalTime(), msg.GetSender(), msg.GetContent())
 
 		// log message
-		log.Printf("Received Time: %d, From %s Message: %s", msg.GetLogicalTime(), msg.GetSender(), msg.GetContent())
+		//log.Printf("Received Time: %d, From %s Message: %s", msg.GetLogicalTime(), msg.GetSender(), msg.GetContent())
 	}
 }
 
@@ -81,24 +77,23 @@ func publishMsg(content string) {
 		return
 	}
 
-	log.Printf("Send message: %s", content)
+	//log.Printf("Send message: %s", content)
 
 	// make message
 	msg := &proto.Message{
 		Sender:  clientName,
 		Content: content,
-		// LogicalTime is Missing =============================================================================================================================
 	}
 
 	// Send to server
 	if _, err := grpcClient.SendMessage(context.Background(), msg); err != nil {
-		log.Printf("The Message failed to sand: %v", err)
+		//log.Printf("The Message failed to sand: %v", err)
 		fmt.Println("Error: The massage could not send")
 	}
 }
 
 func leaveChat(conn *grpc.ClientConn) {
-	log.Println("Leaving the chat...")
+	//log.Println("Leaving the chat...")
 	_, _ = grpcClient.Leave(context.Background(), &proto.User{Name: clientName})
 	_ = conn.Close()
 }
@@ -106,10 +101,12 @@ func leaveChat(conn *grpc.ClientConn) {
 func readUserInput() {
 	scanner := bufio.NewScanner(os.Stdin)
 
-	fmt.Println("\n=Chit Chat=")
+	time.Sleep(200 * time.Millisecond)
+
+	fmt.Println("\n== Chit Chat ==")
 	fmt.Println("Write your message and press Enter")
 	fmt.Println("Write 'exit' to leave")
-	fmt.Println("========")
+	fmt.Println("==================================")
 
 	for {
 		fmt.Print("> ")
